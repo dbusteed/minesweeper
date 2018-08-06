@@ -2,7 +2,8 @@
 # reset button
 # winning check?
 # button highlight
-# colors
+# colors (backgound, cells, numbers)
+# bitmap buttons
 
 
 import wx
@@ -14,7 +15,7 @@ GOOD_VAL = []
 BTN_SIZE = 40
 HEIGHT = BTN_SIZE * LEN + 70  # 50 for top panel, 10x2 for board padding
 WIDTH = BTN_SIZE * LEN + 20 # 10x2 for padding
-a = []
+A = []
 
 def get_num(a,m,n):
   i = 0
@@ -82,57 +83,72 @@ def get_neighbors(m,n):
     l.append([m+1,n+1])
   return l
 
-a = [' '] * LEN
-for x in range(LEN):
-  GOOD_VAL.append(x)
-  a[x] = [' '] * LEN
-    
-for i in range(MINE_COUNT):
-  #TODO: add checking for 'double mines'
-  m,n = randint(0,LEN-1), randint(0,LEN-1)
-  a[m][n] = '@'
-    
-for m in range(LEN):
-  for n in range(LEN):
-      a[m][n] = get_num(a,m,n)  
+def start_game():
+  print('starting game')
+  a = [' '] * LEN
+  for x in range(LEN):
+    GOOD_VAL.append(x)
+    a[x] = [' '] * LEN
+      
+  for i in range(MINE_COUNT):
+    #TODO: add checking for 'double mines'
+    m,n = randint(0,LEN-1), randint(0,LEN-1)
+    a[m][n] = '@'
+      
+  for m in range(LEN):
+    for n in range(LEN):
+        a[m][n] = get_num(a,m,n)
+
+  for m in range(LEN):
+    for n in range(LEN):
+      btn = wx.Button(bottomPanel, pos=(10+m*BTN_SIZE, 10+n*BTN_SIZE), size=(BTN_SIZE,BTN_SIZE), label=(' '), name=(str(m)+'-'+str(n)))
+      btn.SetBackgroundColour(wx.Colour(255,255,255))
+      btn.Bind(wx.EVT_BUTTON, lambda e, m=m, n=n, b=btn: handle_click(e, m, n, b), btn)
+      btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n, b=btn: handle_right_click(e, m, n, b), btn)
+
+  return a
+
+def call_start_game(self):
+  A = start_game()
 
 def handle_click(self, m, n, btn):
 
-  if(a[m][n] == '@'):
+  print(A)
+
+  if(A[m][n] == '@'):
     for i in range(LEN):
       for j in range(LEN):
         b = panel.FindWindowByName(str(i)+'-'+str(j))
-        if a[i][j] == '@':
+        if A[i][j] == '@':
           b.SetBackgroundColour(wx.Colour(255, 113, 107))
         else:
           b.SetBackgroundColour(wx.Colour(220,220,220)) 
-        b.SetLabel(a[i][j])
+        b.SetLabel(A[i][j])
         
-  elif a[m][n] == ' ':
+  elif A[m][n] == ' ':
     open_cells = get_neighbors(m,n)
     for c in open_cells:
       new_neighbors = get_neighbors(c[0],c[1])
       for nn in new_neighbors:
-        if nn not in open_cells and a[nn[0]][nn[1]] == ' ':
+        if nn not in open_cells and A[nn[0]][nn[1]] == ' ':
           open_cells.append(nn)
           
     for c in open_cells:
       b = panel.FindWindowByName(str(c[0])+'-'+str(c[1]))
       b.SetBackgroundColour(wx.Colour(220,220,220))
-      b.SetLabel(a[c[0]][c[1]])
+      b.SetLabel(A[c[0]][c[1]])
       
     for c in open_cells:
-      if a[c[0]][c[1]] == ' ':
+      if A[c[0]][c[1]] == ' ':
         for n in get_neighbors(c[0],c[1]):
-          if a[n[0]][n[1]] != ' ':
+          if A[n[0]][n[1]] != ' ':
             b = panel.FindWindowByName(str(n[0])+'-'+str(n[1]))
             b.SetBackgroundColour(wx.Colour(220,220,220))
-            b.SetLabel(a[n[0]][n[1]])
-    
+            b.SetLabel(A[n[0]][n[1]])
     
   else: # 1,2,3 etc
     btn.SetBackgroundColour(wx.Colour(220,220,220)) 
-    btn.SetLabel(a[m][n])
+    btn.SetLabel(A[m][n])
 
 def handle_right_click(self, m, n, btn):
   if btn.GetLabel() == ' ':
@@ -147,24 +163,29 @@ window = wx.Frame(None, title='Minesweeper', size=(WIDTH, HEIGHT))
 window.SetMinClientSize((WIDTH,HEIGHT))
 
 panel = wx.Panel(window)
-panel.SetBackgroundColour(wx.Colour(100,0,0))
+panel.SetBackgroundColour(wx.Colour(226, 226, 226))
 
 topPanel = wx.Panel(panel, pos=(0,0), size=(WIDTH,50))
-topPanel.SetBackgroundColour(wx.Colour(0,220,0))
+topPanel.SetBackgroundColour(wx.Colour(196, 196, 196))
 
 bottomPanel = wx.Panel(panel, pos=(0,50), size=(WIDTH,HEIGHT-50))
-bottomPanel.SetBackgroundColour(wx.Colour(0,0,220))
+bottomPanel.SetBackgroundColour(wx.Colour(226, 226, 226))
 
+resetButton = wx.Button(topPanel, pos=(10,10), size=(100,30), label='Reset')
+resetButton.Bind(wx.EVT_BUTTON, call_start_game)
 
-for m in range(LEN):
-  for n in range(LEN):
-    btn = wx.Button(bottomPanel, pos=(10+m*BTN_SIZE, 10+n*BTN_SIZE), size=(BTN_SIZE,BTN_SIZE), label=(' '), name=(str(m)+'-'+str(n)))
-    btn.SetBackgroundColour(wx.Colour(255,255,255))
-    btn.Bind(wx.EVT_BUTTON, lambda e, m=m, n=n, b=btn: handle_click(e, m, n, b), btn)
-    btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n, b=btn: handle_right_click(e, m, n, b), btn)
+# make the grid of buttons
+# for m in range(LEN):
+#   for n in range(LEN):
+#     btn = wx.Button(bottomPanel, pos=(10+m*BTN_SIZE, 10+n*BTN_SIZE), size=(BTN_SIZE,BTN_SIZE), label=(' '), name=(str(m)+'-'+str(n)))
+#     btn.SetBackgroundColour(wx.Colour(255,255,255))
+#     btn.Bind(wx.EVT_BUTTON, lambda e, m=m, n=n, b=btn: handle_click(e, m, n, b), btn)
+#     btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n, b=btn: handle_right_click(e, m, n, b), btn)
 
 # import wx.lib.inspection
 # wx.lib.inspection.InspectionTool().Show()
     
+A = start_game()
+
 window.Show(True)
 app.MainLoop()

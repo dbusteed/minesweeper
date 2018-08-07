@@ -5,7 +5,6 @@
 # colors (backgound, cells, numbers)
 # bitmap buttons
 
-
 import wx
 from random import randint
 
@@ -81,39 +80,9 @@ def get_neighbors(m,n):
     l.append([m+1,n])
   if(m+1 in GOOD_VAL and n+1 in GOOD_VAL):
     l.append([m+1,n+1])
-  return l
-
-def start_game():
-  print('starting game')
-  a = [' '] * LEN
-  for x in range(LEN):
-    GOOD_VAL.append(x)
-    a[x] = [' '] * LEN
-      
-  for i in range(MINE_COUNT):
-    #TODO: add checking for 'double mines'
-    m,n = randint(0,LEN-1), randint(0,LEN-1)
-    a[m][n] = '@'
-      
-  for m in range(LEN):
-    for n in range(LEN):
-        a[m][n] = get_num(a,m,n)
-
-  for m in range(LEN):
-    for n in range(LEN):
-      btn = wx.Button(bottomPanel, pos=(10+m*BTN_SIZE, 10+n*BTN_SIZE), size=(BTN_SIZE,BTN_SIZE), label=(' '), name=(str(m)+'-'+str(n)))
-      btn.SetBackgroundColour(wx.Colour(255,255,255))
-      btn.Bind(wx.EVT_BUTTON, lambda e, m=m, n=n, b=btn: handle_click(e, m, n, b), btn)
-      btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n, b=btn: handle_right_click(e, m, n, b), btn)
-
-  return a
-
-def call_start_game(self):
-  A = start_game()
-
+  return l      
+    
 def handle_click(self, m, n, btn):
-
-  print(A)
 
   if(A[m][n] == '@'):
     for i in range(LEN):
@@ -157,6 +126,30 @@ def handle_right_click(self, m, n, btn):
   elif btn.GetLabel() == '*':
     btn.SetLabel(' ')
     btn.SetBackgroundColour(wx.Colour(255, 255, 255))
+
+def start_game(self=None):
+
+  for m in range(LEN):
+    for n in range(LEN):
+      btn = panel.FindWindowByName(str(m)+'-'+str(n))
+      btn.SetBackgroundColour(wx.Colour(255,255,255))
+      btn.SetLabel(' ')
+      
+  A = [' '] * LEN
+  for x in range(LEN):
+    GOOD_VAL.append(x)
+    A[x] = [' '] * LEN
+    
+  for i in range(MINE_COUNT):
+    #TODO: add checking for 'double mines'
+    m,n = randint(0,LEN-1), randint(0,LEN-1)
+    A[m][n] = '@'
+    
+  for m in range(LEN):
+    for n in range(LEN):
+        A[m][n] = get_num(A,m,n)
+        
+  return A
     
 app = wx.App()
 window = wx.Frame(None, title='Minesweeper', size=(WIDTH, HEIGHT))
@@ -172,20 +165,21 @@ bottomPanel = wx.Panel(panel, pos=(0,50), size=(WIDTH,HEIGHT-50))
 bottomPanel.SetBackgroundColour(wx.Colour(226, 226, 226))
 
 resetButton = wx.Button(topPanel, pos=(10,10), size=(100,30), label='Reset')
-resetButton.Bind(wx.EVT_BUTTON, call_start_game)
+resetButton.Bind(wx.EVT_BUTTON, lambda e: start_game(e))
+
 
 # make the grid of buttons
-# for m in range(LEN):
-#   for n in range(LEN):
-#     btn = wx.Button(bottomPanel, pos=(10+m*BTN_SIZE, 10+n*BTN_SIZE), size=(BTN_SIZE,BTN_SIZE), label=(' '), name=(str(m)+'-'+str(n)))
-#     btn.SetBackgroundColour(wx.Colour(255,255,255))
-#     btn.Bind(wx.EVT_BUTTON, lambda e, m=m, n=n, b=btn: handle_click(e, m, n, b), btn)
-#     btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n, b=btn: handle_right_click(e, m, n, b), btn)
+for m in range(LEN):
+  for n in range(LEN):
+    btn = wx.Button(bottomPanel, pos=(10+m*BTN_SIZE, 10+n*BTN_SIZE), size=(BTN_SIZE,BTN_SIZE), label=(' '), name=(str(m)+'-'+str(n)))
+    btn.SetBackgroundColour(wx.Colour(255,255,255))
+    btn.Bind(wx.EVT_BUTTON, lambda e, m=m, n=n, b=btn: handle_click(e, m, n, b), btn)
+    btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n, b=btn: handle_right_click(e, m, n, b), btn)
 
+A = start_game()
+    
 # import wx.lib.inspection
 # wx.lib.inspection.InspectionTool().Show()
-    
-A = start_game()
 
 window.Show(True)
 app.MainLoop()

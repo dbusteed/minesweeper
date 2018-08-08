@@ -1,3 +1,10 @@
+#TODO
+#double mines
+#check for win
+#bitmap buttons
+#colors (numbers too)
+
+
 from random import randint
 import wx
 
@@ -17,6 +24,9 @@ class MainPanel(wx.Panel):
     
     btn = wx.Button(self, label='Reset', pos=(10,10), size=(100,30))
     btn.Bind(wx.EVT_BUTTON, lambda e: self.start_game(e))
+    
+    # flag = wx.Image("./assets/flag.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+    # wx.StaticBitmap(self, -1, flag)
     
     self.start_game()
    
@@ -58,7 +68,6 @@ class MainPanel(wx.Panel):
     i = 0
       
     if( a[m][n] != '@' ):
-      
       # top left
       if( (m-1 in GOOD_VAL) and (n-1 in GOOD_VAL) ):
         if( a[m-1][n-1] == '@' ):

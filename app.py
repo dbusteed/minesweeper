@@ -1,7 +1,5 @@
 #TODO
-#double mines
 #check for win
-#reset
 #dynamic
 #optimize render?
 #refacor self.btns to [][]
@@ -24,24 +22,26 @@ class MainPanel(wx.Panel):
     
     self.A = []
     self.btns = []
+    self.click_count = 0
     
-    self.blank_tile = self.scale_bitmap(wx.Image('./assets/blank_tile.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.flag_tile = self.scale_bitmap(wx.Image('./assets/flag_tile.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.clicked_tile = self.scale_bitmap(wx.Image('./assets/clicked_tile.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.one = self.scale_bitmap(wx.Image('./assets/1.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.two = self.scale_bitmap(wx.Image('./assets/2.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.three = self.scale_bitmap(wx.Image('./assets/3.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.four = self.scale_bitmap(wx.Image('./assets/4.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.five = self.scale_bitmap(wx.Image('./assets/5.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.six = self.scale_bitmap(wx.Image('./assets/6.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.seven = self.scale_bitmap(wx.Image('./assets/7.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.eight = self.scale_bitmap(wx.Image('./assets/8.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.nine = self.scale_bitmap(wx.Image('./assets/9.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.mine_tile = self.scale_bitmap(wx.Image('./assets/mine_tile.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
-    self.red_mine_tile = self.scale_bitmap(wx.Image('./assets/red_mine_tile.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap(), BTN_SIZE, BTN_SIZE)
+    self.blank_tile = self.scale_bitmap(wx.Image('./assets/blank_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.flag_tile = self.scale_bitmap(wx.Image('./assets/flag_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.clicked_tile = self.scale_bitmap(wx.Image('./assets/clicked_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.one = self.scale_bitmap(wx.Image('./assets/1.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.two = self.scale_bitmap(wx.Image('./assets/2.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.three = self.scale_bitmap(wx.Image('./assets/3.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.four = self.scale_bitmap(wx.Image('./assets/4.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.five = self.scale_bitmap(wx.Image('./assets/5.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.six = self.scale_bitmap(wx.Image('./assets/6.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.seven = self.scale_bitmap(wx.Image('./assets/7.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.eight = self.scale_bitmap(wx.Image('./assets/8.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.nine = self.scale_bitmap(wx.Image('./assets/9.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.mine_tile = self.scale_bitmap(wx.Image('./assets/mine_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
+    self.red_mine_tile = self.scale_bitmap(wx.Image('./assets/red_mine_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
     
-    btn = wx.Button(self, label='Reset', pos=(10,10), size=(100,30))
-    btn.Bind(wx.EVT_BUTTON, lambda e: self.start_game(e))
+    reset_bmp = self.scale_bitmap(wx.Image('./assets/reset.png', wx.BITMAP_TYPE_ANY), 80, 40)
+    reset_btn = wx.StaticBitmap(self, -1, reset_bmp, pos=(10,10))
+    reset_btn.Bind(wx.EVT_LEFT_DOWN, lambda e: self.start_game(e))
     
     self.start_game()
    
@@ -55,16 +55,21 @@ class MainPanel(wx.Panel):
         self.btns.append(btn)
         i += 1
   
+    for b in self.btns:
+      print('{} - {}'.format(b.GetLabel(), b))
+  
   def test(self, event):
     print('asdf')
   
-  def scale_bitmap(self, bitmap, width, height):
-    image = bitmap.ConvertToImage()
+  def scale_bitmap(self, image, width, height):
+    # image = bitmap.ConvertToImage()
     image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
     result = image.ConvertToBitmap()
     return result
       
   def start_game(self=None, event=None):
+    
+    self.click_count = 0
     
     try:
       for m in range(LEN):
@@ -185,6 +190,8 @@ class MainPanel(wx.Panel):
       return self.nine
     
   def handle_click(self,e,i,m,n):
+  
+    self.click_count += 1
   
     # for bombs
     if(self.A[m][n] == '@'):      

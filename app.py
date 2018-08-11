@@ -55,9 +55,6 @@ class MainPanel(wx.Panel):
         self.btns.append(btn)
         i += 1
   
-    for b in self.btns:
-      print('{} - {}'.format(b.GetLabel(), b))
-  
   def test(self, event):
     print('asdf')
   

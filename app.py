@@ -1,15 +1,14 @@
 #TODO
 #check for win
 #dynamic
-#optimize render?
-#refacor self.btns to [][]
+#reset!
 
 
 from random import randint
 import wx
 
 LEN = 8
-MINE_COUNT = 10
+MINE_COUNT = 5
 GOOD_VAL = []
 BTN_SIZE = 35
 HEIGHT = BTN_SIZE * LEN + 70
@@ -20,9 +19,9 @@ class MainPanel(wx.Panel):
   def __init__(self, parent):
     wx.Panel.__init__(self, parent)
     
-    self.A = []
+    self.board = []
     self.btns = []
-    self.click_count = 0
+    self.game_count = 0
     
     self.blank_tile = self.scale_bitmap(wx.Image('./assets/blank_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
     self.flag_tile = self.scale_bitmap(wx.Image('./assets/flag_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
@@ -44,46 +43,29 @@ class MainPanel(wx.Panel):
     reset_btn.Bind(wx.EVT_LEFT_DOWN, lambda e: self.start_game(e))
     
     self.start_game()
-   
-    i = 0
+    
     for m in range(LEN):
       for n in range(LEN):
         btn = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
-        btn.SetLabel(str(i)+'-blank')
-        btn.Bind(wx.EVT_LEFT_DOWN, lambda e, i=i, m=m, n=n: self.handle_click(e,i,m,n))
-        btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, i=i, m=m, n=n: self.handle_right_click(e,i,m,n))
-        self.btns.append(btn)
-        i += 1
-  
-    for b in self.btns:
-      print('{} - {}'.format(b.GetLabel(), b))
-  
-  def test(self, event):
-    print('asdf')
+        btn.SetLabel('blank')
+        btn.Bind(wx.EVT_LEFT_DOWN, lambda e, m=m, n=n: self.handle_click(e,m,n))
+        btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n: self.handle_right_click(e,m,n))
+        self.board[m][n].extend([btn, self.get_bmp(m,n)])
   
   def scale_bitmap(self, image, width, height):
-    # image = bitmap.ConvertToImage()
     image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
     result = image.ConvertToBitmap()
     return result
       
   def start_game(self=None, event=None):
     
-    self.click_count = 0
-    
-    try:
-      for m in range(LEN):
-        for n in range(LEN):
-          i = self.get_i(m,n)          
-          self.btns[i] = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
-          self.btns[i].SetLabel(str(i)+'-blank')    
-    except:
-      pass
+    self.game_count += 1
   
-    a = [' '] * LEN
+    # make the underlying board
+    a = [[' ']] * LEN
     for x in range(LEN):
       GOOD_VAL.append(x)
-      a[x] = [' '] * LEN
+      a[x] = [[' ']] * LEN
     
     for i in range(MINE_COUNT):
       alreadyMine = True
@@ -97,7 +79,20 @@ class MainPanel(wx.Panel):
       for n in range(LEN):
         a[m][n] = self.get_num(a,m,n)
         
-    self.A = a
+    for m in range(LEN):
+      for n in range(LEN):
+        a[m][n] = list(a[m][n])
+        
+    self.board = a
+    
+    if self.game_count > 1:
+      for m in range(LEN):
+        for n in range(LEN):
+          btn = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
+          btn.SetLabel('blank')
+          btn.Bind(wx.EVT_LEFT_DOWN, lambda e, m=m, n=n: self.handle_click(e,m,n))
+          btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n: self.handle_right_click(e,m,n))
+          self.board[m][n].extend([btn, self.get_bmp(m,n)])
         
   def get_num(self,a,m,n):
     i = 0
@@ -165,7 +160,7 @@ class MainPanel(wx.Panel):
     return l
   
   def get_bmp(self,m,n):
-    val = self.A[m][n]
+    val = self.board[m][n][0]
     if val == '@':
       return self.mine_tile
     elif val == ' ':
@@ -189,58 +184,45 @@ class MainPanel(wx.Panel):
     elif val == '9':
       return self.nine
     
-  def handle_click(self,e,i,m,n):
-  
-    self.click_count += 1
+  def handle_click(self,e,m,n):
   
     # for bombs
-    if(self.A[m][n] == '@'):      
-      for x in range(LEN*LEN):
-        cord = self.get_mn(x)
-        bmp = self.get_bmp(cord[0], cord[1])
-        self.btns[x] = wx.StaticBitmap(self, -1, bmp, pos=(10+cord[0]*BTN_SIZE,50+cord[1]*BTN_SIZE))
-        
-      self.btns[i] = wx.StaticBitmap(self, -1, self.red_mine_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
+    if self.board[m][n][0] == '@':
+      for a in range(LEN):
+        for b in range(LEN):
+          self.board[a][b][1] = wx.StaticBitmap(self, -1, self.board[a][b][2], pos=(10+a*BTN_SIZE,50+b*BTN_SIZE))
+      
+      self.board[m][n][1] = wx.StaticBitmap(self, -1, self.red_mine_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
           
     # for blank spaces
-    elif self.A[m][n] == ' ':
+    elif self.board[m][n][0] == ' ':
       open_cells = self.get_neighbors(m,n)
       for c in open_cells:
         new_neighbors = self.get_neighbors(c[0],c[1])
         for nn in new_neighbors:
-          if nn not in open_cells and self.A[nn[0]][nn[1]] == ' ':
+          if nn not in open_cells and self.board[nn[0]][nn[1]][0] == ' ':
             open_cells.append(nn)
             
       for c in open_cells:
-        x = self.get_i(c[0],c[1])
-        self.btns[x] = wx.StaticBitmap(self, -1, self.get_bmp(c[0],c[1]), pos=(10+c[0]*BTN_SIZE,50+c[1]*BTN_SIZE))
+        self.board[c[0]][c[1]][1] = wx.StaticBitmap(self, -1, self.board[c[0]][c[1]][2], pos=(10+c[0]*BTN_SIZE,50+c[1]*BTN_SIZE))
         
       for c in open_cells:
-        if self.A[c[0]][c[1]] == ' ':
-          for n in self.get_neighbors(c[0],c[1]):
-            if self.A[n[0]][n[1]] != ' ':
-              x = self.get_i(n[0],n[1])
-              self.btns[x] = wx.StaticBitmap(self, -1, self.get_bmp(n[0],n[1]), pos=(10+n[0]*BTN_SIZE,50+n[1]*BTN_SIZE))
+        if self.board[c[0]][c[1]][0] == ' ':
+          for ne in self.get_neighbors(c[0],c[1]):
+            if self.board[ne[0]][ne[1]][0] != ' ':
+              self.board[ne[0]][ne[1]][1] = wx.StaticBitmap(self, -1, self.board[ne[0]][ne[1]][2], pos=(10+ne[0]*BTN_SIZE,50+ne[1]*BTN_SIZE))
       
     # for 1,2,3 etc  
-    else: 
-      self.btns[i] = wx.StaticBitmap(self, -1, self.get_bmp(m,n), pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
-  
-  def handle_right_click(self,e,i,m,n):
-    if self.btns[i].GetLabel().split('-')[1] == 'flag':
-      self.btns[i] = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
-      self.btns[i].SetLabel(str(i)+'-blank')
     else:
-      self.btns[i] = wx.StaticBitmap(self, -1, self.flag_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
-      self.btns[i].SetLabel(str(i)+'-flag')
+      self.board[m][n][1] = wx.StaticBitmap(self, -1, self.board[m][n][2], pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
   
-  def get_mn(self, i):
-    m = i // LEN
-    n = i % LEN
-    return [m,n]
-    
-  def get_i(self,m,n):
-    return m * LEN + n
+  def handle_right_click(self,e,m,n):
+    if self.board[m][n][1].GetLabel() == 'flag':
+      self.board[m][n][1] = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
+      self.board[m][n][1].SetLabel('blank')
+    else:
+      self.board[m][n][1] = wx.StaticBitmap(self, -1, self.flag_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
+      self.board[m][n][1].SetLabel('flag')
   
 class Frame(wx.Frame):
   

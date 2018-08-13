@@ -1,7 +1,7 @@
 #TODO
 #check for win
 #dynamic
-#reset!
+#only check unturned tiles for get_neighbors
 
 
 from random import randint
@@ -20,7 +20,6 @@ class MainPanel(wx.Panel):
     wx.Panel.__init__(self, parent)
     
     self.board = []
-    self.btns = []
     self.game_count = 0
     
     self.blank_tile = self.scale_bitmap(wx.Image('./assets/blank_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)

@@ -62,15 +62,6 @@ class MainPanel(wx.Panel):
   def start_game(self=None, event=None):
     
     self.click_count = 0
-    
-    if self.game_count > 0:
-      print(self.board[0][0])
-      for m in range(LEN):
-        for n in range(LEN):     
-          self.board[m][n][1] = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
-          self.board[m][n][1].SetLabel('blank')    
-          
-    self.game_count += 1
   
     # make the underlying board
     a = [[' ']] * LEN
@@ -89,11 +80,20 @@ class MainPanel(wx.Panel):
     for m in range(LEN):
       for n in range(LEN):
         a[m][n] = self.get_num(a,m,n)
+        
+    if self.game_count > 0:
+      for m in range(LEN):
+        for n in range(LEN):     
+          self.board[m][n][1] = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
+          self.board[m][n][1].SetLabel('blank')    
     
-    for m in range(LEN):
-      for n in range(LEN):
-        a[m][n] = list(a[m][n])
+    else:
+      for m in range(LEN):
+        for n in range(LEN):
+          a[m][n] = list(a[m][n])
     
+    
+    self.game_count += 1
     self.board = a
         
   def get_num(self,a,m,n):

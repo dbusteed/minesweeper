@@ -1,15 +1,14 @@
 #TODO
 #check for win
 #dynamic
-#optimize render?
-#refacor self.btns to [][]
+#reset!
 
 
 from random import randint
 import wx
 
 LEN = 8
-MINE_COUNT = 10
+MINE_COUNT = 5
 GOOD_VAL = []
 BTN_SIZE = 35
 HEIGHT = BTN_SIZE * LEN + 70
@@ -22,7 +21,6 @@ class MainPanel(wx.Panel):
     
     self.board = []
     self.btns = []
-    self.click_count = 0
     self.game_count = 0
     
     self.blank_tile = self.scale_bitmap(wx.Image('./assets/blank_tile.png', wx.BITMAP_TYPE_ANY), BTN_SIZE, BTN_SIZE)
@@ -61,7 +59,7 @@ class MainPanel(wx.Panel):
       
   def start_game(self=None, event=None):
     
-    self.click_count = 0
+    self.game_count += 1
   
     # make the underlying board
     a = [[' ']] * LEN
@@ -81,20 +79,20 @@ class MainPanel(wx.Panel):
       for n in range(LEN):
         a[m][n] = self.get_num(a,m,n)
         
-    if self.game_count > 0:
-      for m in range(LEN):
-        for n in range(LEN):     
-          self.board[m][n][1] = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
-          self.board[m][n][1].SetLabel('blank')    
+    for m in range(LEN):
+      for n in range(LEN):
+        a[m][n] = list(a[m][n])
+        
+    self.board = a
     
-    else:
+    if self.game_count > 1:
       for m in range(LEN):
         for n in range(LEN):
-          a[m][n] = list(a[m][n])
-    
-    
-    self.game_count += 1
-    self.board = a
+          btn = wx.StaticBitmap(self, -1, self.blank_tile, pos=(10+m*BTN_SIZE,50+n*BTN_SIZE))
+          btn.SetLabel('blank')
+          btn.Bind(wx.EVT_LEFT_DOWN, lambda e, m=m, n=n: self.handle_click(e,m,n))
+          btn.Bind(wx.EVT_RIGHT_DOWN, lambda e, m=m, n=n: self.handle_right_click(e,m,n))
+          self.board[m][n].extend([btn, self.get_bmp(m,n)])
         
   def get_num(self,a,m,n):
     i = 0
@@ -188,8 +186,6 @@ class MainPanel(wx.Panel):
     
   def handle_click(self,e,m,n):
   
-    self.click_count += 1
-  
     # for bombs
     if self.board[m][n][0] == '@':
       for a in range(LEN):
@@ -242,7 +238,5 @@ class Frame(wx.Frame):
 
 if __name__ == '__main__':
   app = wx.App(False)
-  # import wx.lib.inspection
-  # wx.lib.inspection.InspectionTool().Show()
   frame = Frame()  
   app.MainLoop()
